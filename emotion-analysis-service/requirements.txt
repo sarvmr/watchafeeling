@@ -1,0 +1,3 @@
+Flask==2.2.2
+tensorflow==2.11.0  # For TensorFlow
+tensorflow-hub==0.12.0  # For TensorFlow Hub models
