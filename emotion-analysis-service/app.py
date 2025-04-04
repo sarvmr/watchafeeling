@@ -1,17 +1,37 @@
 from flask import Flask, request, jsonify
-import os
+from transformers import pipeline
+
+
 
 app = Flask(__name__)
+
+# Load emotion classifier from Hugging Face
+classifier = pipeline("text-classification", model="bhadresh-savani/distilbert-base-uncased-emotion", top_k=1)  
 
 # Simple health check route
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "Emotion Analysis Service is running"}), 200
 
-# Dummy sentiment analysis (to be replaced with actual model)
+# Function to convert text to tensor and make prediction
 def analyze_emotion(text):
-    emotions = ['happy', 'sad', 'angry', 'relaxed']
-    return emotions[hash(text) % len(emotions)]
+    try:
+        result = classifier(text)
+        top_result = result[0][0]
+        print(result)  # Debugging line to check the result format
+        # Extract the label with the highest score
+        label = top_result['label']
+        print(label)  # Debugging line to check the label format
+        score = top_result['score']
+        print(score)  # Debugging line to check the score format
+        # Format the result
+        emotion = {
+            "emotion": label,
+            "confidence": score
+        }
+        return emotion
+    except Exception as e:
+        return f"Error in sentiment analysis: {e}"
 
 # Emotion Analysis Route
 @app.route('/analyze', methods=['POST'])
@@ -28,4 +48,4 @@ def analyze():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    app.run(host='0.0.0.0', port=5000)

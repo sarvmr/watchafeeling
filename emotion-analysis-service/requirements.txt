@@ -1,3 +1,8 @@
 Flask==2.2.2
-tensorflow==2.11.0  # For TensorFlow
-tensorflow-hub==0.12.0  # For TensorFlow Hub models
+Werkzeug==2.2.3
+transformers==4.40.0
+torch==2.2.2
+numpy==1.26.4
+flask-cors==4.0.0
+
+
