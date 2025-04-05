@@ -1,0 +1,22 @@
+services:
+  emotion-service:
+    build: ./emotion-analysis-service
+    ports:
+      - "5000:5000"
+    depends_on:
+      - recommendation-service
+    networks:
+      - watcha-network
+
+  recommendation-service:
+    build: ./recommendation-service
+    ports:
+      - "5001:5001"
+    environment:
+      - TMDB_API_KEY=${TMDB_API_KEY}  # This will use the value from .env file
+    networks:
+      - watcha-network
+
+networks:
+  watcha-network:
+    driver: bridge
