@@ -3,19 +3,20 @@ from transformers import pipeline
 import os
 import requests
 
-
-
 app = Flask(__name__)
 
 # Load emotion classifier from Hugging Face
-classifier = pipeline("text-classification", model="bhadresh-savani/distilbert-base-uncased-emotion", top_k=1)  
-RECOMMENDER_URL = os.getenv('RECOMMENDER_URL', 'http://172.18.0.2:5001/recommend')
+classifier = pipeline("text-classification", model="bhadresh-savani/distilbert-base-uncased-emotion", top_k=1)
+
+# API Gateway URL (this will communicate with both services)
+API_GATEWAY_URL = os.getenv('API_GATEWAY_URL', 'http://api-gateway:8080/watcha')  # Adjust for your gateway's actual URL
+
 # Simple health check route
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "Emotion Analysis Service is running"}), 200
 
-# Function to convert text to tensor and make prediction
+# Function to analyze emotion from text input
 def analyze_emotion(text):
     try:
         result = classifier(text)
@@ -23,11 +24,10 @@ def analyze_emotion(text):
         
         # Extract the label with the highest score
         label = top_result['label']
-        
         score = top_result['score']
         
         # Format the result
-        emotion = label.lower() 
+        emotion = label.lower()
         return emotion
     except Exception as e:
         return f"Error in sentiment analysis: {e}"
@@ -41,14 +41,11 @@ def analyze():
         if not text:
             return jsonify({"error": "Text input is required"}), 400
 
+        # Analyze emotion from the text
         emotion = analyze_emotion(text)
-        # sending the emotion to the recommendation service
-        response = requests.post(RECOMMENDER_URL, json={"emotion": emotion})
-        if response.status_code != 200:
-            return jsonify({"error": "Failed to get recommendation"}), 500
-        recommendation = response.json()
-        # Return the emotion and recommendation
-        return jsonify({"emotion": emotion, "recommendation": recommendation}) 
+        
+        # Return the emotion
+        return jsonify({"emotion": emotion}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
